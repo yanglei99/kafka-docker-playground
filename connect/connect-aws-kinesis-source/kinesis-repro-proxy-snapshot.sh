@@ -15,7 +15,7 @@ then
      exit 1
 fi
 
-${DIR}/../../environment/plaintext/start.sh "${PWD}/docker-compose.plaintext-snapshot.yml"
+${DIR}/../../environment/plaintext/start.sh "${PWD}/docker-compose.plaintext-repro-proxy-snapshot.yml"
 
 
 set +e
@@ -41,11 +41,12 @@ log "Creating Kinesis Source connector"
 curl -X PUT \
      -H "Content-Type: application/json" \
      --data '{
-        "connector.class":"io.confluent.connect.kinesis.KinesisSourceConnector",
+               "connector.class":"io.confluent.connect.kinesis.KinesisSourceConnector",
                "tasks.max": "1",
                "kafka.topic": "kinesis_topic",
                "kinesis.region": "us-west-2",
                "kinesis.stream": "my_kinesis_stream",
+               "kinesis.proxy.url": "https://nginx_proxy:8888",
                "confluent.license": "",
                "confluent.topic.bootstrap.servers": "broker:9092",
                "confluent.topic.replication.factor": "1"

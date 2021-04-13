@@ -16,24 +16,11 @@ then
 fi
 
 ${DIR}/../../environment/plaintext/start.sh "${PWD}/docker-compose.plaintext-snapshot.yml"
-
-
-set +e
-log "Delete the stream"
-aws kinesis delete-stream --stream-name my_kinesis_stream
-set -e
-
 sleep 5
-
-log "Create a Kinesis stream my_kinesis_stream"
-aws kinesis create-stream --stream-name my_kinesis_stream --shard-count 1
-
-log "Sleep 60 seconds to let the Kinesis stream being fully started"
-sleep 60
 
 log "Insert records in Kinesis stream"
 # The example shows that a record containing partition key 123 and data "test-message" is inserted into my_kinesis_stream.
-aws kinesis put-record --stream-name my_kinesis_stream --partition-key 123 --data test-message
+aws kinesis put-record --stream-name yl_kinesis_stream --partition-key 123 --data test-message
 
 sleep 60
 
@@ -41,11 +28,12 @@ log "Creating Kinesis Source connector"
 curl -X PUT \
      -H "Content-Type: application/json" \
      --data '{
-        "connector.class":"io.confluent.connect.kinesis.KinesisSourceConnector",
+               "connector.class":"io.confluent.connect.kinesis.KinesisSourceConnector",
                "tasks.max": "1",
                "kafka.topic": "kinesis_topic",
                "kinesis.region": "us-west-2",
-               "kinesis.stream": "my_kinesis_stream",
+               "kinesis.stream": "yl_kinesis_stream",
+               "kinesis.proxy.url": "https://1a9gtvvegk.execute-api.us-west-2.amazonaws.com/test",
                "confluent.license": "",
                "confluent.topic.bootstrap.servers": "broker:9092",
                "confluent.topic.replication.factor": "1"
@@ -54,6 +42,3 @@ curl -X PUT \
 
 log "Verify we have received the data in kinesis_topic topic"
 timeout 60 docker exec broker kafka-console-consumer --bootstrap-server broker:9092 --topic kinesis_topic --from-beginning --max-messages 1
-
-log "Delete the stream"
-aws kinesis delete-stream --stream-name my_kinesis_stream
